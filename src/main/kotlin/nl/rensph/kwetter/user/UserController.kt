@@ -1,10 +1,8 @@
 package nl.rensph.kwetter.user
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,67 +19,41 @@ import javax.validation.Valid
 class UserController {
 
     @Autowired
-    lateinit var userRepository: UserRepository
+    lateinit var userService: UserService
 
-    @Autowired
-    lateinit var passwordEncoder: PasswordEncoder
-
-    // Get all Users
     @Secured("ROLE_USER", "ROLE_ADMIN")
     @GetMapping("")
     fun getAllUsers(): List<User> =
-            userRepository.findAll()
+            userService.getAllUsers()
 
-    // Create a new User
     @PostMapping("")
-    fun createUser(@Valid @RequestBody user: User): ResponseEntity<User> {
+    fun createUser(@Valid @RequestBody user: User): ResponseEntity<User> =
+            userService.createUser(user)
 
-        user.password = passwordEncoder.encode(user.password)
-        val newUser = userRepository.save(user)
-        return ResponseEntity.ok(newUser)
-
-    }
-
-    // Get a single User
     @GetMapping("/{id}")
-    fun getUserById(@PathVariable(value = "id") userId: Long): ResponseEntity<User> {
+    fun getUserById(@PathVariable(value = "id") userId: Long): ResponseEntity<User> =
+            userService.getUserById(userId)
 
-        return userRepository.findById(userId).map { user ->
-            ResponseEntity.ok(user)
-        }.orElse(ResponseEntity.notFound().build())
-
-    }
-
-    // Update a User
     @PutMapping("/{id}")
     fun updateUserById(@PathVariable(value = "id") userId: Long,
-                       @Valid @RequestBody newUser: User): ResponseEntity<User> {
+                       @Valid @RequestBody newUser: User): ResponseEntity<User> =
+            userService.updateUserById(userId, newUser)
 
-        return userRepository.findById(userId).map { existingUser ->
-
-            // Make copy of existing user and
-            val updatedUser: User = existingUser
-                    .copy(bio = newUser.bio,
-                          location = newUser.location)
-
-            ResponseEntity.ok().body(userRepository.save(updatedUser))
-
-        }.orElse(ResponseEntity.notFound().build())
-
-    }
-
-    // Delete a User
     @DeleteMapping("/{id}")
-    fun deleteUserById(@PathVariable(value = "id") userId: Long): ResponseEntity<Void> {
+    fun deleteUserById(@PathVariable(value = "id") userId: Long): ResponseEntity<Void> =
+            userService.deleteUserById(userId)
 
-        return userRepository.findById(userId).map { user ->
+    @GetMapping("/{id}/following")
+    fun getFollowingById(@PathVariable(value = "id") userId: Long): ResponseEntity<List<User>> =
+            userService.getFollowingById(userId)
 
-            userRepository.delete(user)
+    @PostMapping("/{id}/following/{followingId}")
+    fun addFollowingById(@PathVariable(value = "id") userId: Long,
+                         @PathVariable(value = "followingId") followingId: Long): ResponseEntity<List<User>> =
+            userService.addFollowingById(userId, followingId)
 
-            ResponseEntity<Void>(HttpStatus.OK)
-
-        }.orElse(ResponseEntity.notFound().build())
-
-    }
+    @GetMapping("/{id}/followers")
+    fun getFollowersById(@PathVariable(value = "id") userId: Long): ResponseEntity<List<User>> =
+            userService.getFollowersById(userId)
 
 }

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
 import java.util.Date
+import java.util.Optional
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EntityListeners
@@ -70,14 +71,14 @@ data class User(
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles", joinColumns = [(JoinColumn(name = "user_id"))],
                inverseJoinColumns = [(JoinColumn(name = "role_id"))])
-    var roles: Set<Role> = emptySet()
+    var roles: List<Role> = emptyList()
 
     /**
      * Relation to Kweets
      */
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    var kweets: Set<Kweet> = emptySet()
+    var kweets: List<Kweet> = emptyList()
 
 
     /**
@@ -90,7 +91,7 @@ data class User(
             joinColumns = [(JoinColumn(name = "user_id", referencedColumnName = "id", unique = false))],
             inverseJoinColumns = [(JoinColumn(name = "following_id", referencedColumnName = "id", unique = false))]
     )
-    var following: Set<User> = emptySet()
+    var following: List<User> = emptyList()
 
     /**
      * Relation to followers
@@ -102,7 +103,7 @@ data class User(
             joinColumns = [(JoinColumn(name = "following_id", referencedColumnName = "id", unique = false))],
             inverseJoinColumns = [(JoinColumn(name = "user_id", referencedColumnName = "id", unique = false))]
     )
-    var followers: Set<User> = emptySet()
+    var followers: List<User> = emptyList()
 
     /**
      * Follow a user
