@@ -3,6 +3,8 @@ package nl.rensph.kwetter.user
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.annotation.Secured
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,30 +17,39 @@ import javax.validation.Valid
 
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 class UserController {
 
     @Autowired
     lateinit var userRepository: UserRepository
 
+    @Autowired
+    lateinit var passwordEncoder: PasswordEncoder
+
     // Get all Users
+    @Secured("ROLE_USER", "ROLE_ADMIN")
     @GetMapping("")
     fun getAllUsers(): List<User> =
             userRepository.findAll()
 
     // Create a new User
     @PostMapping("")
-    fun createUser(@Valid @RequestBody user: User): User =
-            userRepository.save(user)
+    fun createUser(@Valid @RequestBody user: User): ResponseEntity<User> {
+
+        user.password = passwordEncoder.encode(user.password)
+        val newUser = userRepository.save(user)
+        return ResponseEntity.ok(newUser)
+
+    }
 
     // Get a single User
     @GetMapping("/{id}")
     fun getUserById(@PathVariable(value = "id") userId: Long): ResponseEntity<User> {
+
         return userRepository.findById(userId).map { user ->
-
             ResponseEntity.ok(user)
-
         }.orElse(ResponseEntity.notFound().build())
+
     }
 
     // Update a User

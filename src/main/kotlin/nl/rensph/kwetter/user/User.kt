@@ -2,6 +2,7 @@ package nl.rensph.kwetter.user
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import nl.rensph.kwetter.kweet.Kweet
+import nl.rensph.kwetter.role.Role
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -22,6 +23,7 @@ import javax.persistence.Table
 import javax.persistence.Temporal
 import javax.persistence.TemporalType
 import javax.validation.constraints.NotBlank
+
 
 @Entity
 @Table(name = "users")
@@ -63,10 +65,18 @@ data class User(
 ) : Serializable {
 
     /**
+     * All roles
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_roles", joinColumns = [(JoinColumn(name = "user_id"))],
+               inverseJoinColumns = [(JoinColumn(name = "role_id"))])
+    var roles: Set<Role> = emptySet()
+
+    /**
      * Relation to Kweets
      */
     @JsonIgnore
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     var kweets: Set<Kweet> = emptySet()
 
 
@@ -74,7 +84,7 @@ data class User(
      * Relation to following
      */
     @JsonIgnore
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "following",
             joinColumns = [(JoinColumn(name = "user_id", referencedColumnName = "id", unique = false))],
@@ -86,7 +96,7 @@ data class User(
      * Relation to followers
      */
     @JsonIgnore
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "following",
             joinColumns = [(JoinColumn(name = "following_id", referencedColumnName = "id", unique = false))],
